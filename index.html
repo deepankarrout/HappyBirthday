@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Happy Birthday</title>
+  <style>
+    body {
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: url("https://images.unsplash.com/photo-1513151233558-d860c5398176?auto=format&fit=crop&w=1350&q=80")
+        center/cover no-repeat;
+      font-family: "Poppins", sans-serif;
+      color: #fff;
+      text-align: center;
+      transition: filter 1s ease;
+    }
+
+    #countdown {
+      font-size: 6vw;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 20px 40px;
+      border-radius: 20px;
+      backdrop-filter: blur(10px);
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .wish-container {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      opacity: 0;
+      transition: all 1s ease;
+      text-align: center;
+      z-index: 3;
+    }
+    .wish-container.show-center {
+      opacity: 1 !important;
+    }
+
+    .wish-line1 {
+      font-size: 4.5vw;
+      text-shadow: 0 0 15px #ff66cc;
+      animation: glow 1.5s ease-in-out infinite alternate;
+      margin: 0;
+    }
+    .wish-line2 {
+      font-size: 3.5vw;
+      color: rgb(44, 229, 16);
+      margin: 10px 0;
+    }
+
+    @keyframes glow {
+      from {
+        text-shadow: 0 0 10px #ff66cc, 0 0 20px #ff99ff;
+      }
+      to {
+        text-shadow: 0 0 20px #ff33cc, 0 0 30px #ff66ff;
+      }
+    }
+
+    .profile-pic {
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      border: 5px solid pink;
+      background: url("Monali.png") center/cover no-repeat;
+      margin: 20px auto;
+      box-shadow: 0 0 20px rgba(255, 192, 203, 0.7);
+      position: relative;
+      transition: all 0.8s ease;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .message-wrapper {
+      position: relative;
+      z-index: 5;
+    }
+
+    .message {
+      max-width: 80%;
+      margin: auto;
+      font-size: 1.5rem;
+      white-space: pre-wrap;
+      text-align: center;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: auto;
+      color: #003366;
+      z-index: 10;
+      position: relative;
+      background: none;
+      padding: 0;
+      border-radius: 0;
+      opacity: 0;
+      transition: background 0.5s ease, padding 0.5s ease, opacity 0.5s ease;
+    }
+
+    .cursor {
+      display: inline-block;
+      width: 10px;
+      background: #003366;
+      animation: blink 0.8s infinite;
+    }
+    @keyframes blink {
+      0%, 50% {
+        opacity: 1;
+      }
+      51%, 100% {
+        opacity: 0;
+      }
+    }
+
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      transition: opacity 1s ease;
+      z-index: 2;
+    }
+
+    @media (max-width: 600px) {
+      #countdown {
+        font-size: 10vw;
+      }
+      .wish-line1 {
+        font-size: 9vw;
+      }
+      .wish-line2 {
+        font-size: 7vw;
+      }
+      .message {
+        font-size: 1.2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="countdown"></div>
+
+  <div id="wishContainer" class="wish-container">
+    <div class="wish-line1">🎉 Happy Birthday 🎉</div>
+    <div class="wish-line2">Monali !</div>
+    <div class="profile-pic"></div>
+  </div>
+
+  <canvas id="confettiCanvas" class="hidden"></canvas>
+
+  <div class="message-wrapper">
+    <div class="profile-pic hidden" id="topProfile"></div>
+    <div id="note" class="message hidden"></div>
+    <span class="cursor hidden" id="cursor"></span>
+  </div>
+
+  <audio id="song" src="birthday-song.mp3" preload="auto"></audio>
+
+  <script>
+    const targetDate = new Date("July 19, 2025 00:00:00").getTime();
+
+    const countdownEl = document.getElementById("countdown");
+    const wishContainer = document.getElementById("wishContainer");
+    const song = document.getElementById("song");
+    const noteEl = document.getElementById("note");
+    const cursorEl = document.getElementById("cursor");
+    const confettiCanvas = document.getElementById("confettiCanvas");
+    const ctx = confettiCanvas.getContext("2d");
+    const topProfile = document.getElementById("topProfile");
+
+    confettiCanvas.width = window.innerWidth;
+    confettiCanvas.height = window.innerHeight;
+
+    const confettiCount = 150;
+    const confetti = [];
+    let confettiAnimation;
+
+    function createConfetti() {
+      for (let i = 0; i < confettiCount; i++) {
+        confetti.push({
+          x: Math.random() * confettiCanvas.width,
+          y: Math.random() * confettiCanvas.height,
+          r: Math.random() * 6 + 2,
+          d: Math.random() * confettiCount,
+          color: `hsl(${Math.random() * 360}, 100%, 50%)`,
+        });
+      }
+    }
+
+    function drawConfetti() {
+      ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+      confetti.forEach((c) => {
+        ctx.beginPath();
+        ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2, false);
+        ctx.fillStyle = c.color;
+        ctx.fill();
+      });
+      updateConfetti();
+    }
+
+    function updateConfetti() {
+      confetti.forEach((c) => {
+        c.y += Math.cos(c.d) + 1 + c.r / 2;
+        c.x += Math.sin(c.d);
+        if (c.y > confettiCanvas.height) {
+          c.x = Math.random() * confettiCanvas.width;
+          c.y = -10;
+        }
+      });
+    }
+
+    function animateConfetti() {
+      drawConfetti();
+      confettiAnimation = requestAnimationFrame(animateConfetti);
+    }
+
+    const timer = setInterval(() => {
+      const now = new Date().getTime();
+      const distance = targetDate - now;
+
+      if (distance <= 0) {
+        clearInterval(timer);
+        countdownEl.style.display = "none";
+        wishContainer.classList.add("show-center");
+        confettiCanvas.classList.remove("hidden");
+        song.play();
+        createConfetti();
+        animateConfetti();
+
+        setTimeout(() => {
+          wishContainer.style.transition = "opacity 1s ease";
+          wishContainer.style.opacity = "0";
+          fadeOutConfetti();
+          startTypingNote();
+        }, 8000);
+      } else {
+        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+        countdownEl.innerHTML = `${seconds}`;
+      }
+    }, 1000);
+
+    function fadeOutConfetti() {
+      confettiCanvas.style.opacity = "0";
+      cancelAnimationFrame(confettiAnimation);
+    }
+
+    function startTypingNote() {
+      // hide original wish lines and profile in center
+      document.querySelector('.wish-line1').style.display = 'none';
+      document.querySelector('.wish-line2').style.display = 'none';
+      document.querySelector('#wishContainer .profile-pic').style.display = 'none';
+
+      // show profile pic above message
+      topProfile.classList.remove("hidden");
+
+      noteEl.classList.remove("hidden");
+      noteEl.style.background = "rgba(255,255,255,0.6)";
+      noteEl.style.padding = "15px";
+      noteEl.style.borderRadius = "12px";
+      noteEl.style.opacity = "1";
+      cursorEl.classList.remove("hidden");
+
+      const lines = [
+        "Dear Monali,",
+        "",
+        "Wishing you the happiest of birthdays! 🎉",
+        "You are an amazing friend who truly deserves all the love, laughter, and happiness in the world.",
+        "May this special year bring endless smiles, joyful moments, and beautiful memories. ✨ Wishing you a bright and successful future ahead! 💖",
+        "",
+        "You make the world brighter just by being you! 🌸",
+        "Happy Birthday once again! 🥳🎂",
+      ];
+
+      let lineIndex = 0;
+      let charIndex = 0;
+
+      function typeLine() {
+        if (lineIndex < lines.length) {
+          if (charIndex < lines[lineIndex].length) {
+            noteEl.innerHTML += lines[lineIndex][charIndex];
+            charIndex++;
+            setTimeout(typeLine, 50);
+          } else {
+            noteEl.innerHTML += "\n";
+            charIndex = 0;
+            lineIndex++;
+            setTimeout(typeLine, 500);
+          }
+        }
+      }
+      typeLine();
+    }
+  </script>
+</body>
+</html>
