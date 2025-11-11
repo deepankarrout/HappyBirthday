@@ -169,139 +169,151 @@
   <audio id="song" src="birthday-song.mp3" preload="auto"></audio>
 
   <script>
-    const targetDate = new Date("November 12, 2025 00:00:00").getTime();
+  const targetDate = new Date("November 12, 2025 00:00:00").getTime();
 
-    const countdownEl = document.getElementById("countdown");
-    const wishContainer = document.getElementById("wishContainer");
-    const song = document.getElementById("song");
-    const noteEl = document.getElementById("note");
-    const cursorEl = document.getElementById("cursor");
-    const confettiCanvas = document.getElementById("confettiCanvas");
-    const ctx = confettiCanvas.getContext("2d");
-    const topProfile = document.getElementById("topProfile");
+  const countdownEl = document.getElementById("countdown");
+  const wishContainer = document.getElementById("wishContainer");
+  const song = document.getElementById("song");
+  const noteEl = document.getElementById("note");
+  const cursorEl = document.getElementById("cursor");
+  const confettiCanvas = document.getElementById("confettiCanvas");
+  const ctx = confettiCanvas.getContext("2d");
+  const topProfile = document.getElementById("topProfile");
 
-    confettiCanvas.width = window.innerWidth;
-    confettiCanvas.height = window.innerHeight;
+  confettiCanvas.width = window.innerWidth;
+  confettiCanvas.height = window.innerHeight;
 
-    const confettiCount = 150;
-    const confetti = [];
-    let confettiAnimation;
+  const confettiCount = 150;
+  const confetti = [];
+  let confettiAnimation;
 
-    function createConfetti() {
-      for (let i = 0; i < confettiCount; i++) {
-        confetti.push({
-          x: Math.random() * confettiCanvas.width,
-          y: Math.random() * confettiCanvas.height,
-          r: Math.random() * 6 + 2,
-          d: Math.random() * confettiCount,
-          color: `hsl(${Math.random() * 360}, 100%, 50%)`,
-        });
-      }
-    }
-
-    function drawConfetti() {
-      ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
-      confetti.forEach((c) => {
-        ctx.beginPath();
-        ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2, false);
-        ctx.fillStyle = c.color;
-        ctx.fill();
-      });
-      updateConfetti();
-    }
-
-    function updateConfetti() {
-      confetti.forEach((c) => {
-        c.y += Math.cos(c.d) + 1 + c.r / 2;
-        c.x += Math.sin(c.d);
-        if (c.y > confettiCanvas.height) {
-          c.x = Math.random() * confettiCanvas.width;
-          c.y = -10;
-        }
+  function createConfetti() {
+    for (let i = 0; i < confettiCount; i++) {
+      confetti.push({
+        x: Math.random() * confettiCanvas.width,
+        y: Math.random() * confettiCanvas.height,
+        r: Math.random() * 6 + 2,
+        d: Math.random() * confettiCount,
+        color: `hsl(${Math.random() * 360}, 100%, 50%)`,
       });
     }
+  }
 
-    function animateConfetti() {
-      drawConfetti();
-      confettiAnimation = requestAnimationFrame(animateConfetti);
-    }
+  function drawConfetti() {
+    ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+    confetti.forEach((c) => {
+      ctx.beginPath();
+      ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2, false);
+      ctx.fillStyle = c.color;
+      ctx.fill();
+    });
+    updateConfetti();
+  }
 
-    const timer = setInterval(() => {
-      const now = new Date().getTime();
-      const distance = targetDate - now;
-
-      if (distance <= 0) {
-        clearInterval(timer);
-        countdownEl.style.display = "none";
-        wishContainer.classList.add("show-center");
-        confettiCanvas.classList.remove("hidden");
-        song.play();
-        createConfetti();
-        animateConfetti();
-
-        setTimeout(() => {
-          wishContainer.style.transition = "opacity 1s ease";
-          wishContainer.style.opacity = "0";
-          fadeOutConfetti();
-          startTypingNote();
-        }, 8000);
-      } else {
-        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-        countdownEl.innerHTML = `${seconds}`;
+  function updateConfetti() {
+    confetti.forEach((c) => {
+      c.y += Math.cos(c.d) + 1 + c.r / 2;
+      c.x += Math.sin(c.d);
+      if (c.y > confettiCanvas.height) {
+        c.x = Math.random() * confettiCanvas.width;
+        c.y = -10;
       }
-    }, 1000);
+    });
+  }
 
-    function fadeOutConfetti() {
-      confettiCanvas.style.opacity = "0";
-      cancelAnimationFrame(confettiAnimation);
+  function animateConfetti() {
+    drawConfetti();
+    confettiAnimation = requestAnimationFrame(animateConfetti);
+  }
+
+  // 🕒 Countdown logic based on full date and time
+  const timer = setInterval(() => {
+    const now = new Date().getTime();
+    const distance = targetDate - now;
+
+    if (distance <= 0) {
+      clearInterval(timer);
+      showBirthdayWish();
+    } else {
+      // Calculate days, hours, minutes, seconds
+      const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+      const hours = Math.floor(
+        (distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+      );
+      const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+      countdownEl.innerHTML = `
+        ${days}d ${hours}h ${minutes}m ${seconds}s
+      `;
     }
+  }, 1000);
 
-    function startTypingNote() {
-      // hide original wish lines and profile in center
-      document.querySelector('.wish-line1').style.display = 'none';
-      document.querySelector('.wish-line2').style.display = 'none';
-      document.querySelector('#wishContainer .profile-pic').style.display = 'none';
+  function showBirthdayWish() {
+    countdownEl.style.display = "none";
+    wishContainer.classList.add("show-center");
+    confettiCanvas.classList.remove("hidden");
+    song.play();
+    createConfetti();
+    animateConfetti();
 
-      // show profile pic above message
-      topProfile.classList.remove("hidden");
+    // Wait a few seconds before switching to message
+    setTimeout(() => {
+      wishContainer.style.transition = "opacity 1s ease";
+      wishContainer.style.opacity = "0";
+      fadeOutConfetti();
+      startTypingNote();
+    }, 8000);
+  }
 
-      noteEl.classList.remove("hidden");
-      noteEl.style.background = "rgba(255,255,255,0.6)";
-      noteEl.style.padding = "15px";
-      noteEl.style.borderRadius = "12px";
-      noteEl.style.opacity = "1";
-      cursorEl.classList.remove("hidden");
+  function fadeOutConfetti() {
+    confettiCanvas.style.opacity = "0";
+    cancelAnimationFrame(confettiAnimation);
+  }
 
-      const lines = [
-        "Dear Monali,",
-        "",
-        "Wishing you the happiest of birthdays! 🎉",
-        "You are an amazing friend who truly deserves all the love, laughter, and happiness in the world.",
-        "May this special year bring endless smiles, joyful moments, and beautiful memories. ✨ Wishing you a bright and successful future ahead!",
-        "",
-        "You make the world brighter just by being you! 🌸",
-        "Happy Birthday once again! 🥳🎂",
-      ];
+  function startTypingNote() {
+    document.querySelector('.wish-line1').style.display = 'none';
+    document.querySelector('.wish-line2').style.display = 'none';
+    document.querySelector('#wishContainer .profile-pic').style.display = 'none';
 
-      let lineIndex = 0;
-      let charIndex = 0;
+    topProfile.classList.remove("hidden");
+    noteEl.classList.remove("hidden");
+    noteEl.style.background = "rgba(255,255,255,0.6)";
+    noteEl.style.padding = "15px";
+    noteEl.style.borderRadius = "12px";
+    noteEl.style.opacity = "1";
+    cursorEl.classList.remove("hidden");
 
-      function typeLine() {
-        if (lineIndex < lines.length) {
-          if (charIndex < lines[lineIndex].length) {
-            noteEl.innerHTML += lines[lineIndex][charIndex];
-            charIndex++;
-            setTimeout(typeLine, 50);
-          } else {
-            noteEl.innerHTML += "\n";
-            charIndex = 0;
-            lineIndex++;
-            setTimeout(typeLine, 500);
-          }
+    const lines = [
+      "Dear Monali,",
+      "",
+      "Wishing you the happiest of birthdays! 🎉",
+      "You are an amazing friend who truly deserves all the love, laughter, and happiness in the world.",
+      "May this special year bring endless smiles, joyful moments, and beautiful memories. ✨ Wishing you a bright and successful future ahead!",
+      "",
+      "You make the world brighter just by being you! 🌸",
+      "Happy Birthday once again! 🥳🎂",
+    ];
+
+    let lineIndex = 0;
+    let charIndex = 0;
+
+    function typeLine() {
+      if (lineIndex < lines.length) {
+        if (charIndex < lines[lineIndex].length) {
+          noteEl.innerHTML += lines[lineIndex][charIndex];
+          charIndex++;
+          setTimeout(typeLine, 50);
+        } else {
+          noteEl.innerHTML += "\n";
+          charIndex = 0;
+          lineIndex++;
+          setTimeout(typeLine, 500);
         }
       }
-      typeLine();
     }
-  </script>
+    typeLine();
+  }
+</script>
 </body>
 </html>
